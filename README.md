@@ -15,3 +15,7 @@ And it's highly customisable
 
 ## Example Image
 ![ExampleDense:](example_dense.png)
+
+## Setup
+
+You can read about the setup, and configuration options on the [wiki](https://github.com/codedcosmos/tensorflow-network-visualiser/wiki)
