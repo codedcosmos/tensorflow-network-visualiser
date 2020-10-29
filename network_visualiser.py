@@ -57,6 +57,9 @@ class VisualisationConfig:
 		# 0.5 means the gap is the size of the neuron
 		self.neuron_gap = 0.8
 
+		# Enables/Disables rgb colour
+		self.rgb_colour = False
+
 	# Render data
 	def calculate_render_data(self, input_layer, model):
 		# Calculate drawing values
@@ -122,6 +125,12 @@ class VisualisationConfig:
 	def set_neuron_gap(self, gap_size):
 		self.neuron_gap = gap_size
 
+	def enable_rgb_colour(self):
+		self.rgb_colour = True
+
+	def disable_rgb_colour(self):
+		self.rgb_colour = False
+
 	# Getters
 	def get_resolution(self):
 		return (self.width, self.height)
@@ -146,6 +155,9 @@ class VisualisationConfig:
 
 	def get_minimum_weight_brightness(self):
 		return self.minimum_weight_brightness
+
+	def is_rgb_colour_enabled(self):
+		return self.rgb_colour
 
 
 #########################
@@ -255,7 +267,7 @@ def draw_dense_layer(cr, visconfig, layer_num, weights):
 		for i, neuron in enumerate(biases):
 			y = border_buffer + y_gap * i + y_gap / 2
 
-			draw_neuron(cr, (neuron, neuron, neuron), (1, 1, 1), x, y, inner_size, outer_size)
+			draw_neuron(cr, get_rgb(visconfig, neuron), (1, 1, 1), x, y, inner_size, outer_size)
 			new_last_weight_positions.append((i, x, y))
 	else:
 		# Neurons to draw count per side
@@ -317,7 +329,7 @@ def draw_dense_layer_weights(cr, visconfig, layer_num, weights, last_weights_pos
 					+ visconfig.get_minimum_weight_brightness()
 
 			# Draw line
-			draw_line(cr, (weight, weight, weight), x, y, nx, ny, visconfig.get_weight_thickness())
+			draw_line(cr, get_rgb(visconfig, weight), x, y, nx, ny, visconfig.get_weight_thickness())
 
 	# Extract
 	width, height = visconfig.get_resolution()
@@ -545,6 +557,37 @@ def calculate_frame(model, samples_seen):
 	return (samples_seen, layer_data)
 
 
+def get_rgb(visconfig, c):
+	if visconfig.is_rgb_colour_enabled():
+		return generate_coloured_rgb(c)
+	return (c, c, c)
+
+
+def generate_coloured_rgb(c):
+	r = 0
+	b = 0
+	g = 0
+
+	# Check red
+	if c > 0 and c < 0.5:
+		r = 1.0 - pow(2.0, 4.0) * pow(c - 0.25, 2.0)
+
+	# Check green
+	if c > 0.25 and c < 0.75:
+		g = 1.0 - pow(2.0, 4.0) * pow(c - 0.50, 2.0)
+
+	# Check blue
+	if c > 0.5 and c < 0.75:
+		b = 1.0 - pow(2.0, 4.0) * pow(c - 0.75, 2.0)
+
+	# WhiteMax
+	if c > 0.75 and c < 1:
+		r = g = 1.0 - pow(2.0, 4.0) * pow(c - 1.0, 2.0)
+		b = 1.0 - 0.1 * pow(c - 1.0, 2.0)
+
+	return (r, g, b)
+
+
 #########################
 # Generative Stages
 #########################
@@ -594,12 +637,7 @@ def render_frame(visconfig, frame):
 	return ims
 
 
-#########################
-# Generative
-#########################
-
-
-def render_to_gif(input_layer, model, frames, visconfig, file_name):
+def render_frames(input_layer, model, frames, visconfig):
 	# Extract
 	width, height = visconfig.get_resolution()
 
@@ -629,6 +667,21 @@ def render_to_gif(input_layer, model, frames, visconfig, file_name):
 	# Prevent text being on same line
 	print("")
 	sys.stdout.flush()
+
+	return drawn_frames
+
+
+#########################
+# Generative
+#########################
+
+
+def render_to_gif(input_layer, model, frames, visconfig, file_name):
+	# Calculate drawing values
+	visconfig.calculate_render_data(input_layer, model)
+
+	# Prepare
+	drawn_frames = render_frames(input_layer, model, frames, visconfig)
 
 	# Render frames into gif
 	first_frame = drawn_frames[0]
@@ -642,32 +695,8 @@ def render_to_avi(input_layer, model, frames, visconfig, file_name):
 	# Extract
 	width, height = visconfig.get_resolution()
 
-	# Calculate drawing values
-	visconfig.calculate_render_data(input_layer, model)
-
 	# Prepare
-	drawn_frames = []
-
-	# Render each frame
-	for i, frame in enumerate(frames):
-		# Console output
-		sys.stdout.write("\rRendering frame %d/%d" % (i+1, len(frames)))
-		sys.stdout.flush()
-
-		# Render frame
-		rendered_frame = render_frame(visconfig, frame)
-
-		# Convert frame into image for PIL
-		buf = rendered_frame.get_data()
-		array = np.ndarray(shape=(height, width, 4), dtype=np.uint8, buffer=buf)
-		im = Image.fromarray(array, 'RGBA')
-
-		# Save
-		drawn_frames.append(im)
-
-	# Prevent text being on same line
-	print("")
-	sys.stdout.flush()
+	drawn_frames = render_frames(input_layer, model, frames, visconfig)
 
 	# Render frames into avi
 	fourcc = cv2.VideoWriter_fourcc(*'XVID')

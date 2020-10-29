@@ -63,6 +63,7 @@ visconfig.set_layer_buffer(30)
 visconfig.set_max_neurons_for_normal_draw(18)
 visconfig.set_neuron_gap(0.7)
 visconfig.enable_draw_weights()
+visconfig.enable_rgb_colour()
 
 def custom_train(epochs=1):
     frames = []
@@ -107,8 +108,7 @@ def custom_train(epochs=1):
     # Normalise
     frames = network_visualiser.normalise_frames(frames)
 
-    # Draw gif
-    #network_visualiser.render_to_gif(input_layer, model, frames, visconfig, "example_dense.gif")
+    # Draw avi
     network_visualiser.render_to_avi(input_layer, model, frames, visconfig, "example_dense.avi")
 
 custom_train()
