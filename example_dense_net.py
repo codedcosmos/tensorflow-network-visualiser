@@ -48,8 +48,8 @@ input_layer = tf.keras.layers.Input(shape=(28*28, ))
 model = tf.keras.Sequential([
     input_layer,
     tf.keras.layers.Dense(16),
-    tf.keras.layers.Dense(16),
-    tf.keras.layers.Dense(10),
+    tf.keras.layers.Dense(14),
+    tf.keras.layers.Dense(12),
 ])
 
 # Model functions
@@ -108,6 +108,7 @@ def custom_train(epochs=1):
     frames = network_visualiser.normalise_frames(frames)
 
     # Draw gif
-    network_visualiser.render_to_gif(input_layer, model, frames, visconfig, "example_dense.gif")
+    #network_visualiser.render_to_gif(input_layer, model, frames, visconfig, "example_dense.gif")
+    network_visualiser.render_to_avi(input_layer, model, frames, visconfig, "example_dense.avi")
 
 custom_train()

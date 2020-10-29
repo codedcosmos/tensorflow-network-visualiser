@@ -15,6 +15,7 @@ import cairo, math
 from PIL import Image
 import sys
 import numpy as np
+import cv2
 
 
 #     _   __     __                      __      _    ___                  ___
@@ -633,7 +634,53 @@ def render_to_gif(input_layer, model, frames, visconfig, file_name):
 	first_frame = drawn_frames[0]
 	drawn_frames.pop(0)
 
-	first_frame.save(file_name, save_all=True, append_images=drawn_frames, fps=30)
+	first_frame.save(file_name, save_all=True, append_images=drawn_frames, fps=6)
+	print("Saved", file_name)
+
+
+def render_to_avi(input_layer, model, frames, visconfig, file_name):
+	# Extract
+	width, height = visconfig.get_resolution()
+
+	# Calculate drawing values
+	visconfig.calculate_render_data(input_layer, model)
+
+	# Prepare
+	drawn_frames = []
+
+	# Render each frame
+	for i, frame in enumerate(frames):
+		# Console output
+		sys.stdout.write("\rRendering frame %d/%d" % (i+1, len(frames)))
+		sys.stdout.flush()
+
+		# Render frame
+		rendered_frame = render_frame(visconfig, frame)
+
+		# Convert frame into image for PIL
+		buf = rendered_frame.get_data()
+		array = np.ndarray(shape=(height, width, 4), dtype=np.uint8, buffer=buf)
+		im = Image.fromarray(array, 'RGBA')
+
+		# Save
+		drawn_frames.append(im)
+
+	# Prevent text being on same line
+	print("")
+	sys.stdout.flush()
+
+	# Render frames into avi
+	fourcc = cv2.VideoWriter_fourcc(*'XVID')
+	video = cv2.VideoWriter(file_name, fourcc, 6, (width, height))
+
+	for frame in drawn_frames:
+		rgbframe = frame.convert('RGB')
+		open_cv_image = np.array(rgbframe)
+		open_cv_image = open_cv_image[:, :, ::-1].copy()
+
+		video.write(open_cv_image)
+
+	video.release()
 	print("Saved", file_name)
 
 
