@@ -111,6 +111,6 @@ def custom_train(epochs=1):
     frames = network_visualiser.normalise_frames(frames)
 
     # Draw avi
-    network_visualiser.render_to_avi(input_layer, model, frames, visconfig, "visualisations/example_dense.avi")
+    network_visualiser.render_to_avi(input_layer, model, frames, visconfig, "example/example_dense.avi")
 
 custom_train()
