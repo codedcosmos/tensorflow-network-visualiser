@@ -14,7 +14,7 @@ Supports:
 And it's highly customisable
 
 ## Example Image
-![ExampleDense:](example_dense.png)
+![ExampleDense:](visualisations/example_dense.png)
 
 ## Setup
 

@@ -47,8 +47,11 @@ input_layer = tf.keras.layers.Input(shape=(28*28, ))
 # Create model
 model = tf.keras.Sequential([
     input_layer,
+    tf.keras.layers.Dense(12),
+    tf.keras.layers.Dense(12),
     tf.keras.layers.Dense(16),
-    tf.keras.layers.Dense(14),
+    tf.keras.layers.Dense(12),
+    tf.keras.layers.Dense(24),
     tf.keras.layers.Dense(12),
 ])
 
@@ -63,7 +66,6 @@ visconfig.set_layer_buffer(30)
 visconfig.set_max_neurons_for_normal_draw(18)
 visconfig.set_neuron_gap(0.7)
 visconfig.enable_draw_weights()
-visconfig.enable_rgb_colour()
 
 def custom_train(epochs=1):
     frames = []
@@ -109,6 +111,8 @@ def custom_train(epochs=1):
     frames = network_visualiser.normalise_frames(frames)
 
     # Draw avi
-    network_visualiser.render_to_avi(input_layer, model, frames, visconfig, "example_dense.avi")
+    network_visualiser.render_to_avi(input_layer, model, frames, visconfig, "visualisations/example_dense.avi")
+
+    network_visualiser.render_to_png(input_layer, model, frames[-1], visconfig, "visualisations/example_dense.png")
 
 custom_train()
